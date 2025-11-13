@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Klasik Plus ERP</title>
+</head>
+<body>
+
+  <h1>Inventory</h1>
+
+  <nav>
+    <ul>
+      <li><a href="purchasing.html">Purchasing</a></li>
+      <li><a href="inventory.html">Inventory</a></li>
+      <li><a href="accounting.html">Accounting</a></li>
+    </ul>
+  </nav>
+
+  <form id="inventoryForm">
+    <div>
+      <label>ID: <input type="number" id="itemId" placeholder="ID"></label>
+      <button type="button" onclick="updateField('itemId')">Update</button>
+    </div>
+    <div>
+      <label>Product Name: <input type="text" id="itemName" placeholder="Product Name"></label>
+      <button type="button" onclick="updateField('itemName')">Update</button>
+    </div>
+    <div>
+      <label>Category: <input type="text" id="itemCategory" placeholder="Category"></label>
+      <button type="button" onclick="updateField('itemCategory')">Update</button>
+    </div>
+    <div>
+      <label>Quantity: <input type="number" id="itemQuantity" placeholder="Quantity"></label>
+      <button type="button" onclick="updateField('itemQuantity')">Update</button>
+    </div>
+    <div>
+      <label>Price ($): <input type="number" id="itemPrice" placeholder="Price ($)"></label>
+      <button type="button" onclick="updateField('itemPrice')">Update</button>
+    </div>
+    <button type="button" onclick="addItem()">Add</button>
+  </form>
+
+  <table id="inventoryTable">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Product Name</th>
+        <th>Category</th>
+        <th>Quantity</th>
+        <th>Price ($)</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const inventory = [
+      { id: 1, name: "Laptop", category: "Electronics", quantity: 12, price: 899 },
+      { id: 2, name: "Office Chair", category: "Furniture", quantity: 30, price: 120 },
+      { id: 3, name: "Keyboard", category: "Electronics", quantity: 45, price: 25 },
+      { id: 4, name: "Printer Paper (500 sheets)", category: "Office Supplies", quantity: 80, price: 10 },
+      { id: 5, name: "Desk Lamp", category: "Furniture", quantity: 20, price: 35 }
+    ];
+
+    const tableBody = document.querySelector("#inventoryTable tbody");
+
+    function renderInventory() {
+      tableBody.innerHTML = "";
+      inventory.forEach(item => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${item.id}</td>
+          <td>${item.name}</td>
+          <td>${item.category}</td>
+          <td>${item.quantity}</td>
+          <td>${item.price}</td>
+          <td>
+            <button onclick="populateForm(${item.id})">Update</button>
+            <button onclick="removeItem(${item.id})">Remove</button>
+          </td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+
+    function getFormData() {
+      return {
+        id: parseInt(document.getElementById("itemId").value),
+        name: document.getElementById("itemName").value,
+        category: document.getElementById("itemCategory").value,
+        quantity: parseInt(document.getElementById("itemQuantity").value),
+        price: parseFloat(document.getElementById("itemPrice").value)
+      };
+    }
+
+    function addItem() {
+      const newItem = getFormData();
+      if (!newItem.id || !newItem.name) {
+        alert("Please provide at least an ID and a name.");
+        return;
+      }
+      inventory.push(newItem);
+      renderInventory();
+    }
+
+    function populateForm(id) {
+      const item = inventory.find(i => i.id === id);
+      if (!item) return;
+      document.getElementById("itemId").value = item.id;
+      document.getElementById("itemName").value = item.name;
+      document.getElementById("itemCategory").value = item.category;
+      document.getElementById("itemQuantity").value = item.quantity;
+      document.getElementById("itemPrice").value = item.price;
+    }
+
+    function updateItem() {
+      const updatedItem = getFormData();
+      const index = inventory.findIndex(i => i.id === updatedItem.id);
+      if (index === -1) {
+        alert("Item not found.");
+        return;
+      }
+      inventory[index] = updatedItem;
+      renderInventory();
+    }
+
+    function removeItem(id) {
+      const index = inventory.findIndex(i => i.id === id);
+      if (index === -1) {
+        alert("Item not found.");
+        return;
+      }
+      inventory.splice(index, 1);
+      renderInventory();
+    }
+
+    function updateField(fieldId) {
+      const itemId = parseInt(document.getElementById("itemId").value);
+      const item = inventory.find(i => i.id === itemId);
+      if (!item) {
+        alert("Please enter a valid ID first.");
+        return;
+      }
+      item[fieldId.replace('item', '').toLowerCase()] = document.getElementById(fieldId).value;
+      renderInventory();
+    }
+
+    renderInventory();
+  </script>
+
+</body>
+</html>
