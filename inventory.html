@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Klasik Plus ERP</title>
+  <style>
+    .low-stock {
+      background-color: #f8d7da; /* light red */
+    }
+  </style>
 </head>
 <body>
 
@@ -20,26 +25,33 @@
   <form id="inventoryForm">
     <div>
       <label>ID: <input type="number" id="itemId" placeholder="ID"></label>
-      <button type="button" onclick="updateField('itemId')">Update</button>
     </div>
     <div>
       <label>Product Name: <input type="text" id="itemName" placeholder="Product Name"></label>
-      <button type="button" onclick="updateField('itemName')">Update</button>
     </div>
     <div>
       <label>Category: <input type="text" id="itemCategory" placeholder="Category"></label>
-      <button type="button" onclick="updateField('itemCategory')">Update</button>
     </div>
     <div>
       <label>Quantity: <input type="number" id="itemQuantity" placeholder="Quantity"></label>
-      <button type="button" onclick="updateField('itemQuantity')">Update</button>
     </div>
     <div>
       <label>Price ($): <input type="number" id="itemPrice" placeholder="Price ($)"></label>
-      <button type="button" onclick="updateField('itemPrice')">Update</button>
+    </div>
+    <div>
+      <label>Location: <input type="text" id="itemLocation" placeholder="Location"></label>
+    </div>
+    <div>
+      <label>Threshold: <input type="number" id="itemThreshold" placeholder="Threshold"></label>
     </div>
     <button type="button" onclick="addItem()">Add</button>
   </form>
+
+  <div>
+    <label>Filter by Location: 
+      <input type="text" id="locationFilter" placeholder="Enter location" oninput="renderInventory()" />
+    </label>
+  </div>
 
   <table id="inventoryTable">
     <thead>
@@ -49,6 +61,8 @@
         <th>Category</th>
         <th>Quantity</th>
         <th>Price ($)</th>
+        <th>Location</th>
+        <th>Threshold</th>
         <th>Actions</th>
       </tr>
     </thead>
@@ -56,33 +70,82 @@
   </table>
 
   <script>
-    const inventory = [
-      { id: 1, name: "Laptop", category: "Electronics", quantity: 12, price: 899 },
-      { id: 2, name: "Office Chair", category: "Furniture", quantity: 30, price: 120 },
-      { id: 3, name: "Keyboard", category: "Electronics", quantity: 45, price: 25 },
-      { id: 4, name: "Printer Paper (500 sheets)", category: "Office Supplies", quantity: 80, price: 10 },
-      { id: 5, name: "Desk Lamp", category: "Furniture", quantity: 20, price: 35 }
-    ];
+    // Fetch inventory from local storage or initialize empty
+    let inventory = JSON.parse(localStorage.getItem('inventory')) || [];
 
     const tableBody = document.querySelector("#inventoryTable tbody");
 
+    function saveInventory() {
+      localStorage.setItem('inventory', JSON.stringify(inventory));
+    }
+
     function renderInventory() {
+      const filterValue = document.getElementById("locationFilter").value.trim().toLowerCase();
       tableBody.innerHTML = "";
-      inventory.forEach(item => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${item.id}</td>
-          <td>${item.name}</td>
-          <td>${item.category}</td>
-          <td>${item.quantity}</td>
-          <td>${item.price}</td>
-          <td>
-            <button onclick="populateForm(${item.id})">Update</button>
-            <button onclick="removeItem(${item.id})">Remove</button>
-          </td>
-        `;
-        tableBody.appendChild(row);
+
+      inventory
+        .filter(item => !filterValue || item.location.toLowerCase().includes(filterValue))
+        .forEach(item => {
+          const row = document.createElement("tr");
+          if (item.quantity < item.threshold) row.classList.add("low-stock");
+
+          const keys = ["id", "name", "category", "quantity", "price", "location", "threshold"];
+          keys.forEach(key => {
+            const cell = document.createElement("td");
+            cell.textContent = item[key];
+            if (key !== "id") {
+              cell.addEventListener("dblclick", () => makeCellEditable(cell, item, key));
+            }
+            row.appendChild(cell);
+          });
+
+          const actions = document.createElement("td");
+          const removeBtn = document.createElement("button");
+          removeBtn.textContent = "Remove";
+          removeBtn.onclick = () => removeItem(item.id);
+          actions.appendChild(removeBtn);
+          row.appendChild(actions);
+
+          tableBody.appendChild(row);
+        });
+    }
+
+    function makeCellEditable(cell, item, key) {
+      const originalValue = cell.textContent;
+      cell.innerHTML = `<input type="text" value="${originalValue}" />`;
+      const input = cell.querySelector("input");
+      input.focus();
+
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          let newValue = input.value;
+          if (["quantity", "price", "threshold"].includes(key)) {
+            newValue = parseFloat(newValue);
+            if (isNaN(newValue)) {
+              alert("Invalid number");
+              input.focus();
+              return;
+            }
+          }
+          item[key] = newValue;
+          saveInventory();
+          renderInventory();
+        } else if (e.key === "Escape") {
+          cell.textContent = originalValue;
+        }
       });
+
+      input.addEventListener("blur", () => {
+        cell.textContent = originalValue;
+      });
+    }
+
+    function removeItem(id) {
+      const index = inventory.findIndex(i => i.id === id);
+      if (index === -1) return;
+      inventory.splice(index, 1);
+      saveInventory();
+      renderInventory();
     }
 
     function getFormData() {
@@ -90,8 +153,10 @@
         id: parseInt(document.getElementById("itemId").value),
         name: document.getElementById("itemName").value,
         category: document.getElementById("itemCategory").value,
-        quantity: parseInt(document.getElementById("itemQuantity").value),
-        price: parseFloat(document.getElementById("itemPrice").value)
+        quantity: parseFloat(document.getElementById("itemQuantity").value),
+        price: parseFloat(document.getElementById("itemPrice").value),
+        location: document.getElementById("itemLocation").value,
+        threshold: parseFloat(document.getElementById("itemThreshold").value)
       };
     }
 
@@ -101,50 +166,14 @@
         alert("Please provide at least an ID and a name.");
         return;
       }
+      if (inventory.some(item => item.id === newItem.id)) {
+        alert("ID already exists.");
+        return;
+      }
       inventory.push(newItem);
+      saveInventory();
       renderInventory();
-    }
-
-    function populateForm(id) {
-      const item = inventory.find(i => i.id === id);
-      if (!item) return;
-      document.getElementById("itemId").value = item.id;
-      document.getElementById("itemName").value = item.name;
-      document.getElementById("itemCategory").value = item.category;
-      document.getElementById("itemQuantity").value = item.quantity;
-      document.getElementById("itemPrice").value = item.price;
-    }
-
-    function updateItem() {
-      const updatedItem = getFormData();
-      const index = inventory.findIndex(i => i.id === updatedItem.id);
-      if (index === -1) {
-        alert("Item not found.");
-        return;
-      }
-      inventory[index] = updatedItem;
-      renderInventory();
-    }
-
-    function removeItem(id) {
-      const index = inventory.findIndex(i => i.id === id);
-      if (index === -1) {
-        alert("Item not found.");
-        return;
-      }
-      inventory.splice(index, 1);
-      renderInventory();
-    }
-
-    function updateField(fieldId) {
-      const itemId = parseInt(document.getElementById("itemId").value);
-      const item = inventory.find(i => i.id === itemId);
-      if (!item) {
-        alert("Please enter a valid ID first.");
-        return;
-      }
-      item[fieldId.replace('item', '').toLowerCase()] = document.getElementById(fieldId).value;
-      renderInventory();
+      document.getElementById("inventoryForm").reset();
     }
 
     renderInventory();
