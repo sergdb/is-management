@@ -6,6 +6,83 @@
     <title>Klasik Plus ERP</title>
 </head>
 <body>
-    
+
+    <h1>Accounting</h1>
+
+  <nav>
+    <ul>
+       <li><a href="inventory.html">Inventory</a></li>
+      <li><a href="purchasing.html">Purchasing</a></li>
+      <li><a href="accounting.html">Accounting</a></li>
+    </ul>
+  </nav>
+
+    <div id="ordersContainer"></div>
+
+    <script>
+const orders = JSON.parse(localStorage.getItem("completedOrders")) || [];
+
+        const container = document.getElementById("ordersContainer");
+
+        if (orders.length === 0) {
+            container.textContent = "No orders in history.";
+        } else {
+            orders.forEach(order => {
+                const orderDiv = document.createElement("div");
+                orderDiv.style.marginBottom = "30px";
+
+                const orderHeader = document.createElement("h2");
+                orderHeader.textContent = `Order #${order.id} - Date: ${order.date}`;
+                orderDiv.appendChild(orderHeader);
+
+                const table = document.createElement("table");
+                const thead = document.createElement("thead");
+                thead.innerHTML = `
+                    <tr>
+                        <th>ID</th>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Price ($)</th>
+                        <th>Subtotal ($)</th>
+                    </tr>
+                `;
+                table.appendChild(thead);
+
+                const tbody = document.createElement("tbody");
+                let totalPrice = 0;
+
+                order.items.forEach(item => {
+                    const invItem = JSON.parse(localStorage.getItem("inventory")).find(i => i.id === item.id);
+                    const price = invItem ? invItem.price : 0;
+                    const subtotal = price * item.quantity;
+                    totalPrice += subtotal;
+
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${item.id}</td>
+                        <td>${item.name}</td>
+                        <td>${item.quantity}</td>
+                        <td>${price.toFixed(2)}</td>
+                        <td>${subtotal.toFixed(2)}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+
+                table.appendChild(tbody);
+
+                const tfoot = document.createElement("tfoot");
+                tfoot.innerHTML = `
+                    <tr>
+                        <td colspan="4" style="text-align:right;"><strong>Total Price:</strong></td>
+                        <td><strong>${totalPrice.toFixed(2)}</strong></td>
+                    </tr>
+                `;
+                table.appendChild(tfoot);
+
+                orderDiv.appendChild(table);
+                container.appendChild(orderDiv);
+            });
+        }
+    </script>
 </body>
 </html>

@@ -6,6 +6,274 @@
     <title>Klasik Plus ERP</title>
 </head>
 <body>
-    
+
+      <h1>Purchasing</h1>
+
+  <nav>
+    <ul>
+       <li><a href="inventory.html">Inventory</a></li>
+      <li><a href="purchasing.html">Purchasing</a></li>
+      <li><a href="accounting.html">Accounting</a></li>
+    </ul>
+  </nav>
+
+  <h3>Add to Pending Order</h3>
+
+  <label>Select Product: 
+    <select id="productSelect"></select>
+  </label><br><br>
+
+  <label>Quantity: 
+    <input type="number" id="addQty" required>
+  </label><br><br>
+
+  <button onclick="addPending()">Add to Pending</button>
+
+
+  <h3>Pending Items</h3>
+  <table border="1" cellpadding="8" id="pendingTable">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Product</th>
+        <th>Quantity</th>
+        <th>Remove</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <!-- NEW: Total price of pending items -->
+  <h4 id="pendingTotal">Total: $0</h4>
+
+  <br>
+  <button onclick="confirmOrder()">Confirm Order</button>
+
+  <hr>
+
+  <h3>See Orders</h3>
+  <div id="orderSection"></div>
+
+<script>
+  let inventory = JSON.parse(localStorage.getItem("inventory")) || [];
+  let pending = [];
+  let orders = JSON.parse(localStorage.getItem("orders")) || [];
+
+  const productSelect = document.getElementById("productSelect");
+  const pendingBody = document.querySelector("#pendingTable tbody");
+  const orderSection = document.getElementById("orderSection");
+  const pendingTotal = document.getElementById("pendingTotal");
+
+  /* ---------------- Dropdown ---------------- */
+
+  function renderDropdown() {
+    productSelect.innerHTML = "";
+    inventory.forEach(item => {
+      const opt = document.createElement("option");
+      opt.value = item.id;
+      opt.textContent = `${item.name}`;
+      productSelect.appendChild(opt);
+    });
+  }
+
+  /* ---------------- Total Price Calculation ---------------- */
+
+  function calculatePendingTotal() {
+    let total = 0;
+
+    pending.forEach(p => {
+      const product = inventory.find(i => i.id === p.id);
+      if (product) {
+        total += product.price * p.quantity;
+      }
+    });
+
+    pendingTotal.textContent = `Total: $${total}`;
+  }
+
+  /* ---------------- Pending Items ---------------- */
+
+  function renderPending() {
+    pendingBody.innerHTML = "";
+
+    pending.forEach((p, index) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${p.id}</td>
+        <td>${p.name}</td>
+        <td>${p.quantity}</td>
+        <td><button onclick="removePending(${index})">X</button></td>
+      `;
+      pendingBody.appendChild(row);
+    });
+
+    calculatePendingTotal();
+  }
+
+  function removePending(index) {
+    pending.splice(index, 1);
+    renderPending();
+  }
+
+  function addPending() {
+    const id = parseInt(productSelect.value);
+    const qty = parseInt(document.getElementById("addQty").value);
+
+    if (!qty || qty <= 0) return;
+
+    const product = inventory.find(i => i.id === id);
+
+    pending.push({
+      id: product.id,
+      name: product.name,
+      quantity: qty
+    });
+
+    document.getElementById("addQty").value = "";
+    renderPending();
+  }
+
+  function generateOrderId(length = 8) {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let id = '';
+    for (let i = 0; i < length; i++) {
+        id += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return id;
+}
+
+  /* ---------------- Order Handling ---------------- */
+
+  function confirmOrder() {
+    if (pending.length === 0) return;
+
+    let total = 0;
+
+    // Calculate total price for this order
+    pending.forEach(p => {
+        const prod = inventory.find(i => i.id === p.id);
+        total += prod.price * p.quantity;
+    });
+
+    const orderId = generateOrderId(); // Random order ID
+
+    const newOrder = {
+        id: orderId,
+        date: new Date().toLocaleString(),
+        items: [...pending],
+        total: total
+    };
+
+    orders.push(newOrder);
+    localStorage.setItem("orders", JSON.stringify(orders));
+
+    pending = [];
+    renderPending();
+    renderOrders();
+}
+
+  /* ---------------- Confirm / Delete Order ---------------- */
+
+function confirmExistingOrder(orderId) {
+    const orderIndex = orders.findIndex(o => o.id === orderId);
+    if (orderIndex === -1) return;
+
+    const order = orders[orderIndex];
+
+    // Update inventory quantities
+    order.items.forEach(orderItem => {
+        const invItem = inventory.find(i => i.id === orderItem.id);
+        if (invItem) {
+            invItem.quantity += orderItem.quantity;
+        }
+    });
+
+    // Save updated inventory
+    localStorage.setItem("inventory", JSON.stringify(inventory));
+
+    // Move order to completedOrders
+    let completedOrders = JSON.parse(localStorage.getItem("completedOrders")) || [];
+    completedOrders.push(order);
+    localStorage.setItem("completedOrders", JSON.stringify(completedOrders));
+
+    // Remove from pending orders (in memory and localStorage)
+    orders.splice(orderIndex, 1); // remove from array in memory
+    localStorage.setItem("orders", JSON.stringify(orders));
+
+    // Re-render frontend tables
+    renderOrders();      // refresh the orders section
+    renderInventory();   // refresh inventory if needed
+}
+
+
+  function deleteOrder(orderId) {
+    orders = orders.filter(o => o.id !== orderId);
+    localStorage.setItem("orders", JSON.stringify(orders));
+    renderOrders();
+  }
+
+  /* ---------------- Orders Rendering ---------------- */
+
+  function renderOrders() {
+    if (orders.length === 0) {
+        orderSection.textContent = "No orders yet.";
+        return;
+    }
+
+    orderSection.innerHTML = "";
+
+    orders.forEach(order => {
+        const div = document.createElement("div");
+        div.style.marginBottom = "20px";
+        div.style.border = "1px solid #000";
+        div.style.padding = "10px";
+
+        let html = `
+            <strong>Order ID: ${order.id}</strong><br>
+            Date: ${order.date}<br><br>
+
+            <table border="1" cellpadding="6" style="margin-bottom:10px;">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        order.items.forEach(item => {
+            html += `
+                <tr>
+                    <td>${item.id}</td>
+                    <td>${item.name}</td>
+                    <td>${item.quantity}</td>
+                </tr>
+            `;
+        });
+
+        html += `
+                </tbody>
+            </table>
+
+            <strong>Total Price: $${order.total}</strong><br><br>
+
+            <button onclick="confirmExistingOrder('${order.id}')">Confirm Delivery</button>
+            <button onclick="deleteOrder('${order.id}')">Not Received</button>
+        `;
+
+        div.innerHTML = html;
+        orderSection.appendChild(div);
+    });
+}
+
+  /* ---------------- Init ---------------- */
+
+  renderDropdown();
+  renderPending();
+  renderOrders();
+</script>
+
 </body>
 </html>
