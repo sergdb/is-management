@@ -78,7 +78,6 @@ select {
     border: 1px solid #c9c9c9;
     background: #fafafa;
     transition: border 0.2s ease-in-out;
-    margin-left: 10px;
 }
 
 input:focus,
@@ -281,4 +280,44 @@ td input {
 
 .pending-form button:active {
   transform: scale(0.97);
+}
+
+/* Style all text, number, and password inputs, plus select */
+input[type="text"],
+input[type="number"],
+input[type="password"],
+select {
+    padding: 10px 12px;
+    font-size: 15px;
+    border-radius: 6px;
+    border: 1px solid #c9c9c9;
+    background: #fafafa;
+    transition: border 0.2s ease-in-out;
+    margin-bottom: 12px; /* spacing between inputs */
+    width: 100%; /* makes input full width of form */
+    box-sizing: border-box;
+}
+
+input:focus,
+select:focus,
+input[type="password"]:focus {
+    border-color: #0077cc;
+    background: #ffffff;
+    outline: none;
+}
+
+#locationFilter {
+    margin-top: 10px;
+}
+
+#locationFilterContainer label{
+    margin-left: 30%;
+}
+
+#addQty{
+    width: 50%;
+}
+
+#ordersContainer table {
+    margin-left:25px
 }
