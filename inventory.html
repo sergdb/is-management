@@ -9,6 +9,7 @@
       background-color: #f8d7da; /* light red */
     }
   </style>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
@@ -22,7 +23,31 @@
     </ul>
   </nav>
 
-  <form id="inventoryForm">
+
+
+  <div id="locationFilterContainer">
+    <label>Filter by Location: 
+      <input type="text" id="locationFilter" placeholder="Enter location" oninput="renderInventory()" />
+    </label>
+  </div>
+
+  <table id="inventoryTable">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Product Name</th>
+        <th>Category</th>
+        <th>Quantity</th>
+        <th>Price ($)</th>
+        <th>Location</th>
+        <th>Threshold</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+    <form id="inventoryForm">
     <div>
       <label>ID: <input type="number" id="itemId" placeholder="ID"></label>
     </div>
@@ -46,28 +71,6 @@
     </div>
     <button type="button" onclick="addItem()">Add</button>
   </form>
-
-  <div>
-    <label>Filter by Location: 
-      <input type="text" id="locationFilter" placeholder="Enter location" oninput="renderInventory()" />
-    </label>
-  </div>
-
-  <table id="inventoryTable">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Product Name</th>
-        <th>Category</th>
-        <th>Quantity</th>
-        <th>Price ($)</th>
-        <th>Location</th>
-        <th>Threshold</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
 
   <script>
     // Fetch inventory from local storage or initialize empty

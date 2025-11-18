@@ -1,0 +1,284 @@
+/* Global layout */
+body {
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+    background: #eef1f5;
+    margin: 0;
+    padding: 40px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Page headings */
+h1 {
+    font-size: 28px;
+    margin-bottom: 25px;
+    color: #1a1a1a;
+}
+
+h3 {
+    margin-top: 30px;
+    margin-bottom: 10px;
+    font-size: 20px;
+    color: #222;
+}
+
+h4 {
+    font-size: 18px;
+    margin-top: 15px;
+    color: #333;
+}
+
+/* Navigation bar */
+nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 30px 0;
+    display: flex;
+    gap: 25px;
+}
+
+nav a {
+    text-decoration: none;
+    font-size: 17px;
+    color: #1a1a1a;
+    padding: 10px 14px;
+    border-radius: 6px;
+    transition: background 0.25s ease-in-out, color 0.25s ease-in-out;
+}
+
+nav a:hover {
+    background: #0077cc;
+    color: #ffffff;
+}
+
+/* Forms */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    background: #ffffff;
+    padding: 25px 25px;
+    border-radius: 10px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    margin-bottom: 25px;
+}
+
+label {
+    font-size: 15px;
+    color: #333;
+}
+
+input[type="text"],
+input[type="number"],
+select {
+    padding: 10px 12px;
+    font-size: 15px;
+    border-radius: 6px;
+    border: 1px solid #c9c9c9;
+    background: #fafafa;
+    transition: border 0.2s ease-in-out;
+    margin-left: 10px;
+}
+
+input:focus,
+select:focus {
+    border-color: #0077cc;
+    background: #ffffff;
+    outline: none;
+}
+
+/* Buttons */
+button {
+    padding: 10px 12px;
+    font-size: 15px;
+    border: none;
+    border-radius: 6px;
+    background: #0077cc;
+    color: #ffffff;
+    cursor: pointer;
+    transition: background 0.25s ease-in-out, transform 0.1s ease-in-out;
+}
+
+button:hover {
+    background: #005fa3;
+}
+
+button:active {
+    transform: scale(0.97);
+}
+
+/* Inventory + Purchasing tables */
+table {
+    border-collapse: collapse;
+    width: 90%;
+    max-width: 1100px;
+    background: #ffffff;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 15px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+}
+
+thead {
+    background: #0077cc;
+    color: #ffffff;
+}
+
+th, td {
+    padding: 12px 14px;
+    text-align: left;
+    font-size: 15px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+tbody tr:hover {
+    background: #f2f7ff;
+}
+
+/* Low-stock rows (from inventory page) */
+.low-stock {
+    background-color: #f8d7da;
+}
+
+/* Editable cell input */
+td input {
+    width: 100%;
+    padding: 8px;
+    font-size: 14px;
+    border-radius: 6px;
+    border: 1px solid #bbb;
+}
+
+/* Pending order section */
+#pendingTotal {
+    font-size: 18px;
+    margin-top: 15px;
+    color: #222;
+}
+
+/* Order sections (auto-styled without containers) */
+#orderSection div {
+    background: #ffffff !important;
+    border-radius: 10px !important;
+    padding: 20px !important;
+    border: none !important;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1) !important;
+    width: 90%;
+    max-width: 1100px;
+}
+
+#orderSection table {
+    width: 100%;
+    margin-top: 10px;
+}
+
+#orderSection strong {
+    font-size: 16px;
+}
+
+
+/* Inventory form: two-column form overall */
+#inventoryForm {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* two columns for fields */
+  gap: 18px 32px;
+  max-width: 760px;
+  width: calc(100% - 40px);
+  margin-top: 24px;
+}
+
+/* Each field uses a label that becomes a two-column grid:
+   first column = label text (fixed), second column = input (flexible) */
+#inventoryForm label {
+  display: grid;
+  grid-template-columns: 140px 1fr; /* adjust 140px to taste */
+  align-items: center;
+  column-gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  font-weight: 600;
+  color: #333;
+}
+
+/* Ensure inline labels without extra markup line-break correctly on small screens */
+#inventoryForm label > input,
+#inventoryForm label > select {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 15px;
+  border-radius: 6px;
+  border: 1px solid #c9c9c9;
+  background: #fafafa;
+  box-sizing: border-box;
+}
+
+/* Remove previous left-margin if present (keeps input flush in grid) */
+#inventoryForm input,
+#inventoryForm select {
+  margin-left: 0;
+}
+
+/* Make Add button span both columns and align visually */
+#inventoryForm button {
+  grid-column: 1 / -1; /* span full width of the two-column grid */
+  padding: 12px;
+  font-size: 15px;
+  border-radius: 6px;
+}
+
+/* Align labels and inputs in the pending order box */
+.pending-form {
+  gap: 12px 20px; /* row gap, column gap */
+  align-items: center;
+  max-width: 500px;
+  width: calc(100% - 40px);
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+  margin-bottom: 25px;
+}
+
+.pending-form label {
+  font-weight: 600;
+  color: #333;
+  margin-left: 40%;
+}
+
+.pending-form label::before {
+  content: attr(for); /* optional: if you want label text inside CSS pseudo */
+}
+
+.pending-form input,
+.pending-form select {
+  width: 50%;
+  padding: 10px 12px;
+  font-size: 15px;
+  border-radius: 6px;
+  border: 1px solid #c9c9c9;
+  background: #fafafa;
+  box-sizing: border-box;
+  margin-left: 25%;
+}
+
+/* Button aligns with the inputs */
+.pending-form button {
+  grid-column: 2 / 3;
+  padding: 12px;
+  font-size: 15px;
+  border-radius: 6px;
+  background: #0077cc;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: background 0.25s ease-in-out, transform 0.1s ease-in-out;
+}
+
+.pending-form button:hover {
+  background: #005fa3;
+}
+
+.pending-form button:active {
+  transform: scale(0.97);
+}
